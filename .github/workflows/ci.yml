@@ -86,12 +86,25 @@ jobs:
         with:
           bundler-cache: true
 
-      - name: Run tests
+      - name: Prepare the test database
+        env:
+          RAILS_ENV: test
+        run: bin/rails db:test:prepare
+
+      # Minitest runs first with the coverage gate off, then RSpec enforces it
+      # on the merged result of both suites.
+      - name: Run Minitest suite
+        env:
+          RAILS_ENV: test
+          MINIMUM_COVERAGE: 0
+          # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
+        run: bin/rails test
+
+      - name: Run RSpec suite and enforce coverage
         env:
           RAILS_ENV: test
           # RAILS_MASTER_KEY: ${{ secrets.RAILS_MASTER_KEY }}
-          # REDIS_URL: redis://localhost:6379/0
-        run: bin/rails db:test:prepare && bundle exec rspec
+        run: bundle exec rspec
 
       - name: Keep the coverage report
         uses: actions/upload-artifact@v4

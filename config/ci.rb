@@ -8,6 +8,9 @@ CI.run do
   step "Security: Gem audit", "bin/bundler-audit"
   step "Security: Importmap vulnerability audit", "bin/importmap audit"
   step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
+  # Minitest first with the gate off; RSpec then enforces coverage on the
+  # merged result of both suites.
+  step "Tests: Minitest", "env MINIMUM_COVERAGE=0 bin/rails test"
   step "Tests: RSpec", "bin/rspec"
   step "Tests: Seeds", "env RAILS_ENV=test bin/rails db:seed:replant"
 

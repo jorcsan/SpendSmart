@@ -19,7 +19,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_09_230304) do
 
   create_table "budgets", force: :cascade do |t|
     t.integer "account_id", null: false
-    t.integer "category_id", null: true
+    t.integer "category_id"
     t.datetime "created_at", null: false
     t.decimal "max_amount"
     t.datetime "updated_at", null: false

@@ -20,7 +20,9 @@ rescue ActiveRecord::PendingMigrationError => e
 end
 
 RSpec.configure do |config|
-  config.fixture_paths = [ Rails.root.join("spec/fixtures") ]
+  # Shared with the Minitest suite so there is one set of fixtures, not two.
+  config.fixture_paths = [ Rails.root.join("test/fixtures") ]
+  config.global_fixtures = :all
 
   # Each example runs inside a transaction that is rolled back afterwards, so
   # examples stay independent and repeatable.

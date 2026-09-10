@@ -1,24 +1,9 @@
-# Coverage must be started before any application code is loaded, otherwise
-# lines executed during boot are reported as uncovered.
+# Coverage must start before any application code is loaded, otherwise lines
+# executed during boot are reported as uncovered. Filters, groups, and the
+# minimum-coverage gate live in .simplecov, which Minitest shares.
 require "simplecov"
-
-SimpleCov.start "rails" do
-  # Generated scaffolding and framework glue are not our logic to test.
-  skip "app/jobs/application_job.rb"
-  skip "app/mailers/application_mailer.rb"
-  skip "app/models/application_record.rb"
-  skip "app/channels"
-
-  group "Models", "app/models"
-  group "Controllers", "app/controllers"
-  group "Helpers", "app/helpers"
-
-  # The course rubric asks for at least 80% statement coverage. Failing the
-  # suite here keeps the number from silently drifting downwards. Override it
-  # (MINIMUM_COVERAGE=0 bin/rspec) while working on a feature whose specs are
-  # not written yet; CI always runs with the default.
-  minimum_coverage Integer(ENV.fetch("MINIMUM_COVERAGE", 80))
-end
+SimpleCov.command_name "RSpec"
+SimpleCov.start
 
 RSpec.configure do |config|
   config.expect_with :rspec do |expectations|
