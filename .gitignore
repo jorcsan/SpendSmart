@@ -6,6 +6,7 @@
 
 # Ignore bundler config.
 /.bundle
+/vendor/bundle
 
 # Ignore all environment files.
 /.env*
@@ -33,3 +34,9 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+# Ignore SimpleCov output; regenerate it with `bin/rspec`.
+/coverage
+
+# Internal planning notes and draft documents. Local only - the graded
+# documentation lives in docs/, which is tracked.
+/doc/

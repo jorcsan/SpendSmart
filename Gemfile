@@ -52,6 +52,10 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+
+  # RSpec is the project's test framework, replacing the default Minitest setup.
+  # It lives in development too so that `rails generate` produces specs, not tests.
+  gem "rspec-rails"
 end
 
 group :development do
@@ -63,4 +67,7 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+
+  # Statement coverage reporting; the course rubric asks for at least 80%.
+  gem "simplecov", require: false
 end

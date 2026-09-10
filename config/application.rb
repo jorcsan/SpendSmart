@@ -16,6 +16,17 @@ module BankApp
     # Common ones are `templates`, `generators`, or `middleware`, for example.
     config.autoload_lib(ignore: %w[assets tasks])
 
+    # Generate RSpec specs instead of Minitest tests, and skip the helper,
+    # view, and routing specs that scaffolding would otherwise create empty.
+    config.generators do |g|
+      g.test_framework :rspec,
+                       fixture: false,
+                       view_specs: false,
+                       helper_specs: false,
+                       routing_specs: false
+      g.helper false
+    end
+
     # Configuration for the application, engines, and railties goes here.
     #
     # These settings can be overridden in specific environments using the files

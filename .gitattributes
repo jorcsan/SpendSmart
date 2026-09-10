@@ -1,5 +1,16 @@
 # See https://git-scm.com/docs/gitattributes for more about git attribute files.
 
+# Normalize line endings to LF in the repository and in every working tree.
+# Without this, Git for Windows (core.autocrlf=true) checks out CRLF while WSL
+# checks out LF, and the whole tree shows as modified on one side or the other.
+* text=auto eol=lf
+
+# Shell scripts and binaries must never be CRLF-converted.
+*.png binary
+*.jpg binary
+*.ico binary
+*.sqlite3 binary
+
 # Mark the database schema as having been generated.
 db/schema.rb linguist-generated
 
