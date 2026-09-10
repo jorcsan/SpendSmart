@@ -1,0 +1,9 @@
+# Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  max_amount: 9.99
+  account: one
+
+two:
+  max_amount: 9.99
+  account: two
