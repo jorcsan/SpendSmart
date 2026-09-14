@@ -1,7 +1,9 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+# Values are deliberately distinct: the generated "MyString" for every record
+# makes any assertion about page content meaningless.
 
 one:
-  name: MyString
+  name: Primary Account
 
 two:
-  name: MyString
+  name: Secondary Account

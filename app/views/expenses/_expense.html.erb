@@ -1,4 +1,4 @@
-<div id="<%= dom_id expense %>">
+<div id="<%= dom_id expense %>" class="expense">
   <div>
     <strong>Description:</strong>
     <%= expense.description %>
@@ -6,22 +6,22 @@
 
   <div>
     <strong>Price:</strong>
-    <%= expense.price %>
+    <%= number_to_currency(expense.price) %>
   </div>
 
   <div>
     <strong>Date:</strong>
-    <%= expense.date %>
+    <%= expense.date&.strftime("%b %-d, %Y") %>
   </div>
 
   <div>
     <strong>Account:</strong>
-    <%= expense.account_id %>
+    <%# Names, not raw foreign keys - the id means nothing to a user. %>
+    <%= expense.account&.name %>
   </div>
 
   <div>
     <strong>Category:</strong>
-    <%= expense.category_id %>
+    <%= expense.category&.name %>
   </div>
-
 </div>
