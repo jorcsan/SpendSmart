@@ -47,7 +47,7 @@ class ExpensesController < ApplicationController
     # expense under a category that does not exist yet. Blank is the normal
     # case: overriding unconditionally would discard the chosen category_id and
     # attach a nameless one instead.
-    @expense.category = find_or_create_category if new_category_name.present?
+    @expense.category = find_or_initialize_category if new_category_name.present?
 
     respond_to do |format|
       if @expense.save
@@ -100,7 +100,11 @@ class ExpensesController < ApplicationController
       params.dig(:expense, :category_name)
     end
 
-    def find_or_create_category
-      Category.find_or_create_by(name: new_category_name.strip)
+    # Initialized rather than created: a new category is only worth keeping if
+    # the expense it was typed for actually saves. Active Record persists the
+    # unsaved category as part of saving the expense, and leaves it untouched
+    # when validation fails.
+    def find_or_initialize_category
+      Category.find_or_initialize_by(name: new_category_name.strip)
     end
 end

@@ -40,7 +40,10 @@
 
   <div>
     <%= form.label :category_name, "Or add a new category", style: "display: block" %>
-    <%= form.text_field :category_name, value: nil,
+    <%# Not an Expense attribute, so the value has to come from params - and it
+        must, or a validation failure elsewhere on the form would silently throw
+        away the category name the user typed. %>
+    <%= form.text_field :category_name, value: params.dig(:expense, :category_name),
                         placeholder: "Leave blank to use the category above" %>
   </div>
 
