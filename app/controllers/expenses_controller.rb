@@ -5,21 +5,21 @@ class ExpensesController < ApplicationController
   def index
     @expenses = Expense.all
 
-  #list expenses within a certain account
+    # list expenses within a certain account
     if params[:account_id]
       @expenses = Account.find(params[:account_id]).expenses
     end
-  
-  #list expenses within a certain category
+
+    # list expenses within a certain category
     if params[:category_id]
       @expenses = @expenses.where(category_id: params[:category_id])
     end
 
-    #list expenses within a certain month
-    #accept a year and month as input and parse into a date value type
+    # list expenses within a certain month
+    # accept a year and month as input and parse into a date value type
     if params[:month].present?
       month = Date.parse("#{params[:month]}-01")
-      
+
       @expenses = @expenses.where(
         date: month.beginning_of_month..month.end_of_month
       )
@@ -28,7 +28,6 @@ class ExpensesController < ApplicationController
 
   # GET /expenses/1 or /expenses/1.json
   def show
-    @expense = Expense.find(params[:id])
   end
 
   # GET /expenses/new
@@ -44,12 +43,11 @@ class ExpensesController < ApplicationController
   def create
     @expense = Expense.new(expense_params)
 
-    #create a category when ot is is listed in expense for the first time
-    category = Category.find_or_create_by(
-      name: params[:expense][:category_name]
-    )
-
-    @expense.category = category
+    # A typed category name wins over the dropdown, so a user can file an
+    # expense under a category that does not exist yet. Blank is the normal
+    # case: overriding unconditionally would discard the chosen category_id and
+    # attach a nameless one instead.
+    @expense.category = find_or_create_category if new_category_name.present?
 
     respond_to do |format|
       if @expense.save
@@ -94,5 +92,15 @@ class ExpensesController < ApplicationController
     # Only allow a list of trusted parameters through.
     def expense_params
       params.expect(expense: [ :description, :price, :date, :account_id, :category_id ])
+    end
+
+    # Optional free-text field for naming a category that does not exist yet.
+    # Kept out of expense_params because it is not an Expense attribute.
+    def new_category_name
+      params.dig(:expense, :category_name)
+    end
+
+    def find_or_create_category
+      Category.find_or_create_by(name: new_category_name.strip)
     end
 end
