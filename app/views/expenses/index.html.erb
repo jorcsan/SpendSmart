@@ -2,8 +2,27 @@
 
 <h1>Expenses</h1>
 
-<%# The flash is rendered once by the layout; repeating it here showed the
-    same message twice. %>
+<%# US-3. A GET form so the filter lives in the URL: the page can be
+    bookmarked and shared, and reloading keeps the selection. %>
+<%= form_with url: expenses_path, method: :get, class: "filters" do |form| %>
+  <%= form.label :category_id, "Category" %>
+  <%# selected: belongs in the options hash, not html_options - in the wrong
+      position it is silently rendered as an attribute and the filter forgets
+      what was chosen. %>
+  <%= form.collection_select :category_id, @categories, :id, :name,
+                             { include_blank: "All categories", selected: params[:category_id] } %>
+  <%= form.submit "Apply" %>
+  <% if params[:category_id].present? %>
+    <%= link_to "Clear filter", expenses_path, class: "clear-filter" %>
+  <% end %>
+<% end %>
+
+<%# US-2. Totals what is on screen, so it follows the filter above. %>
+<p class="list-total">
+  <strong><%= params[:category_id].present? ? "Total for this category:" : "Total spent:" %></strong>
+  <span class="total-amount"><%= number_to_currency(@total) %></span>
+  <span class="total-count">across <%= pluralize(@expenses.size, "expense") %></span>
+</p>
 
 <div id="expenses">
   <% if @expenses.any? %>
@@ -17,6 +36,11 @@
                       class: "link-button" %>
       </p>
     <% end %>
+  <% elsif params[:category_id].present? %>
+    <p class="empty-state">
+      Nothing recorded in this category.
+      <%= link_to "Show all expenses", expenses_path %>.
+    </p>
   <% else %>
     <p class="empty-state">
       No expenses yet. <%= link_to "Record your first expense", new_expense_path %>.
