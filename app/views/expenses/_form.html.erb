@@ -27,13 +27,21 @@
   </div>
 
   <div>
-    <%= form.label :account_id, style: "display: block" %>
-    <%= form.text_field :account_id %>
+    <%= form.label :account_id, "Account", style: "display: block" %>
+    <%= form.collection_select :account_id, Account.order(:name), :id, :name,
+                               { prompt: "Choose an account" } %>
   </div>
 
   <div>
-    <%= form.label :category_id, style: "display: block" %>
-    <%= form.text_field :category_id %>
+    <%= form.label :category_id, "Category", style: "display: block" %>
+    <%= form.collection_select :category_id, Category.order(:name), :id, :name,
+                               { prompt: "Choose a category" } %>
+  </div>
+
+  <div>
+    <%= form.label :category_name, "Or add a new category", style: "display: block" %>
+    <%= form.text_field :category_name, value: nil,
+                        placeholder: "Leave blank to use the category above" %>
   </div>
 
   <div>

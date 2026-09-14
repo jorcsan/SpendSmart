@@ -1,9 +1,20 @@
 Rails.application.routes.draw do
+  # The expense list is the app's home screen.
+  root "expenses#index"
+
+  # Nested routes let a list be scoped to an account, and to a category within
+  # that account. ExpensesController#index reads :account_id and :category_id
+  # from either the nested path or a query string, so both forms work.
+  resources :accounts do
+    resources :expenses, only: [ :index, :show ]
+    resources :categories do
+      resources :expenses, only: [ :index ]
+    end
+  end
+
   resources :expenses
   resources :budgets
   resources :categories
-  resources :accounts
-  # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.
   # Can be used by load balancers and uptime monitors to verify that the app is live.
@@ -12,26 +23,4 @@ Rails.application.routes.draw do
   # Render dynamic PWA files from app/views/pwa/* (remember to link manifest in application.html.erb)
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
-
-  # Defines the root path route ("/")
-  # root "posts#index"
-end
-
-#create two nested routes account/id/expenses
-#and account/id/expenses/id
-Rails.application.routes.draw do
-  resources :accounts do
-     resources :expenses, only: [:index, :show]
-  end
-  resources :expenses
-end
-
-#create two nested routes category/id/expenses
-#and account/id/expenses/id
-Rails.application.routes.draw do
-  resources :accounts do
-    resources :categories do
-      resources :expenses, only: [:index]
-    end
-  end
 end

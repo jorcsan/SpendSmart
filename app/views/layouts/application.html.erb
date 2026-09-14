@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title><%= content_for(:title) || "Bank App" %></title>
+    <title><%= content_for(:title) || "SpendSmart" %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="application-name" content="Bank App">
+    <meta name="application-name" content="SpendSmart">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
@@ -24,6 +24,27 @@
   </head>
 
   <body>
-    <%= yield %>
+    <header class="site-header">
+      <%= link_to "SpendSmart", root_path, class: "site-title" %>
+      <nav>
+        <%= link_to "Expenses", expenses_path %>
+        <%= link_to "Categories", categories_path %>
+        <%= link_to "Budgets", budgets_path %>
+        <%= link_to "Accounts", accounts_path %>
+      </nav>
+    </header>
+
+    <main>
+      <%# The scaffold controllers set notice/alert on every redirect, but
+          nothing rendered them until this was added. %>
+      <% if notice.present? %>
+        <p class="flash flash-notice" role="status"><%= notice %></p>
+      <% end %>
+      <% if alert.present? %>
+        <p class="flash flash-alert" role="alert"><%= alert %></p>
+      <% end %>
+
+      <%= yield %>
+    </main>
   </body>
 </html>
