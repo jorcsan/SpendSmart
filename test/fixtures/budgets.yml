@@ -1,9 +1,11 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
+# A budget with no category is the account's overall spending limit.
 one:
-  max_amount: 9.99
+  max_amount: 500.00
   account: one
 
 two:
-  max_amount: 9.99
+  max_amount: 150.00
   account: two
+  category: two

@@ -3,11 +3,11 @@ class ExpensesController < ApplicationController
 
   # GET /expenses or /expenses.json
   def index
-    @expenses = Expense.all
+    @expenses = Expense.recent_first
 
     # list expenses within a certain account
     if params[:account_id]
-      @expenses = Account.find(params[:account_id]).expenses
+      @expenses = Account.find(params[:account_id]).expenses.recent_first
     end
 
     # list expenses within a certain category
@@ -32,7 +32,7 @@ class ExpensesController < ApplicationController
 
   # GET /expenses/new
   def new
-    @expense = Expense.new
+    @expense = Expense.new(date: Date.current)
   end
 
   # GET /expenses/1/edit
