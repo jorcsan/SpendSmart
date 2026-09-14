@@ -112,3 +112,25 @@ main {
   border: 1px dashed #ccc;
   border-radius: 6px;
 }
+
+.category-total {
+  padding: 0.9rem 1rem;
+  background: #fff;
+  border: 1px solid #e3e3e6;
+  border-radius: 6px;
+}
+
+.category-total .total-amount {
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.category-total .total-count {
+  color: #5c5c61;
+}
+
+.category-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.25rem 0 1rem;
+}

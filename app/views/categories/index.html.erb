@@ -3,10 +3,18 @@
 <h1>Categories</h1>
 
 <div id="categories">
-  <% @categories.each do |category| %>
-    <%= render category %>
-    <p>
-      <%= link_to "Show this category", category %>
+  <% if @categories.any? %>
+    <% @categories.each do |category| %>
+      <%= render category %>
+      <p class="category-actions">
+        <%# US-8: every category links to its own spending page. %>
+        <%= link_to "View expenses and total", category %> |
+        <%= link_to "Edit", edit_category_path(category) %>
+      </p>
+    <% end %>
+  <% else %>
+    <p class="empty-state">
+      No categories yet. <%= link_to "Add one", new_category_path %>.
     </p>
   <% end %>
 </div>
