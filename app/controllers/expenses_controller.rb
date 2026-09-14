@@ -3,27 +3,15 @@ class ExpensesController < ApplicationController
 
   # GET /expenses or /expenses.json
   def index
-    @expenses = Expense.recent_first
+    # US-3: the filters are model scopes, so they chain and a blank one drops
+    # out. The controller only reads params and hands them over.
+    @expenses = Expense.for_account(params[:account_id])
+                       .for_category(params[:category_id])
+                       .in_month(params[:month])
+                       .recent_first
 
-    # list expenses within a certain account
-    if params[:account_id]
-      @expenses = Account.find(params[:account_id]).expenses.recent_first
-    end
-
-    # list expenses within a certain category
-    if params[:category_id]
-      @expenses = @expenses.where(category_id: params[:category_id])
-    end
-
-    # list expenses within a certain month
-    # accept a year and month as input and parse into a date value type
-    if params[:month].present?
-      month = Date.parse("#{params[:month]}-01")
-
-      @expenses = @expenses.where(
-        date: month.beginning_of_month..month.end_of_month
-      )
-    end
+    @total = @expenses.total
+    @categories = Category.order(:name)
   end
 
   # GET /expenses/1 or /expenses/1.json

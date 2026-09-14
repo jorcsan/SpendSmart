@@ -6,10 +6,9 @@ class Category < ApplicationRecord
   # two categories a user reads as the same one would split their totals.
   validates :name, presence: true, uniqueness: { case_sensitive: false }
 
-  # US-8: what this category has cost in total. Summed in the database rather
-  # than by loading every expense, so it stays cheap as the history grows.
-  # Returns 0 for a category with no expenses, never nil.
+  # US-8: what this category has cost in total. Delegates to Expense.total so
+  # there is one definition of "total" in the app, not two that could drift.
   def total_spent
-    expenses.sum(:price)
+    expenses.total
   end
 end
