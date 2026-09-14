@@ -3,7 +3,9 @@ require "rails_helper"
 # Ported from test/controllers/categories_controller_test.rb.
 RSpec.describe "Categories", type: :request do
   let(:category) { categories(:one) }
-  let(:valid_attributes) { { name: category.name } }
+  # A name of its own: category names are unique, so reusing the fixture's name
+  # would be rejected rather than created.
+  let(:valid_attributes) { { name: "Household Supplies" } }
 
   describe "GET /categories" do
     it "renders the list" do
