@@ -8,6 +8,8 @@ class CategoriesController < ApplicationController
 
   # GET /categories/1 or /categories/1.json
   def show
+    # US-8: a category page is only useful if it shows what was spent under it.
+    @expenses = @category.expenses.recent_first
   end
 
   # GET /categories/new

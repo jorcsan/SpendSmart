@@ -1,8 +1,39 @@
-<%= render @category %>
+<% content_for :title, @category.name %>
+
+<h1><%= @category.name %></h1>
+
+<p class="category-total">
+  <strong>Total spent:</strong>
+  <span class="total-amount"><%= number_to_currency(@category.total_spent) %></span>
+  <span class="total-count">
+    across <%= pluralize(@expenses.size, "expense") %>
+  </span>
+</p>
 
 <div>
   <%= link_to "Edit this category", edit_category_path(@category) %> |
   <%= link_to "Back to categories", categories_path %>
 
-  <%= button_to "Destroy this category", @category, method: :delete %>
+  <%= button_to "Destroy this category", @category, method: :delete,
+                form: { data: { turbo_confirm: "Delete #{@category.name}? This cannot be undone." } } %>
+</div>
+
+<h2>Expenses in <%= @category.name %></h2>
+
+<div id="category_expenses">
+  <% if @expenses.any? %>
+    <%# Reuses the expense partial so a row looks the same wherever it appears. %>
+    <% @expenses.each do |expense| %>
+      <%= render expense %>
+      <p class="expense-actions">
+        <%= link_to "Show", expense %> |
+        <%= link_to "Edit", edit_expense_path(expense) %>
+      </p>
+    <% end %>
+  <% else %>
+    <p class="empty-state">
+      Nothing has been filed under <%= @category.name %> yet.
+      <%= link_to "Record an expense", new_expense_path %>.
+    </p>
+  <% end %>
 </div>
