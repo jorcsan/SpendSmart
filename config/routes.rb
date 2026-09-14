@@ -16,3 +16,22 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "posts#index"
 end
+
+#create two nested routes account/id/expenses
+#and account/id/expenses/id
+Rails.application.routes.draw do
+  resources :accounts do
+     resources :expenses, only: [:index, :show]
+  end
+  resources :expenses
+end
+
+#create two nested routes category/id/expenses
+#and account/id/expenses/id
+Rails.application.routes.draw do
+  resources :accounts do
+    resources :categories do
+      resources :expenses, only: [:index]
+    end
+  end
+end

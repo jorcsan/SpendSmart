@@ -4,10 +4,31 @@ class ExpensesController < ApplicationController
   # GET /expenses or /expenses.json
   def index
     @expenses = Expense.all
+
+  #list expenses within a certain account
+    if params[:account_id]
+      @expenses = Account.find(params[:account_id]).expenses
+    end
+  
+  #list expenses within a certain category
+    if params[:category_id]
+      @expenses = @expenses.where(category_id: params[:category_id])
+    end
+
+    #list expenses within a certain month
+    #accept a year and month as input and parse into a date value type
+    if params[:month].present?
+      month = Date.parse("#{params[:month]}-01")
+      
+      @expenses = @expenses.where(
+        date: month.beginning_of_month..month.end_of_month
+      )
+    end
   end
 
   # GET /expenses/1 or /expenses/1.json
   def show
+    @expense = Expense.find(params[:id])
   end
 
   # GET /expenses/new
@@ -22,6 +43,13 @@ class ExpensesController < ApplicationController
   # POST /expenses or /expenses.json
   def create
     @expense = Expense.new(expense_params)
+
+    #create a category when ot is is listed in expense for the first time
+    category = Category.find_or_create_by(
+      name: params[:expense][:category_name]
+    )
+
+    @expense.category = category
 
     respond_to do |format|
       if @expense.save
