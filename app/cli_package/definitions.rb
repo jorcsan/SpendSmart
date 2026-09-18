@@ -3,19 +3,19 @@ require "json"
 require "uri"
 require "tty-prompt"
 API_TOKEN = ENV["SPENDSMART_API_TOKEN"]
-#definition for selecting an already existing account 
-#and returning its id
+# definition for selecting an already existing account
+# and returning its id
 def select_account
   uri = URI("http://localhost:3000/accounts")
 
-   # Create an HTTP connection
+  # Create an HTTP connection
   http = Net::HTTP.new(uri.host, uri.port)
 
   # Create a GET request
   request = Net::HTTP::Get.new(uri.request_uri)
 
-  #here we state that we wish to recieve the data in java form
-  #we use the API_Token to be able to access data and make request
+  # here we state that we wish to recieve the data in java form
+  # we use the API_Token to be able to access data and make request
   request["Accept"] = "application/json"
   request["Authorization"] = "Bearer #{API_TOKEN}"
 
@@ -43,7 +43,7 @@ def select_account
 
   puts "Selected account: #{account["name"]}"
 
-  return account
+  account
 end
 
 # Definition to create a new account and return its ID
