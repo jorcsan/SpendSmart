@@ -1,8 +1,12 @@
 require "tty-prompt"
+require "net/http"
+require "json"
+require "uri"
+require_relative "definitions"
 
 prompt = TTY::Prompt.new(interrupt: :exit)
 
-# --- METHOD TO KEEP INSTRUCTIONS FIXED AT THE TOP ---
+# METHOD TO KEEP INSTRUCTIONS FIXED AT THE TOP ---
 def draw_header(screen_title)
   print "\e[H\e[2J" # Clears the screen completely
   puts "=================================================="
@@ -17,37 +21,30 @@ def draw_header(screen_title)
   puts ""
 end
 
-# ==================================================
-# STEP 1: THE FIRST SELECTION MENU
-# ==================================================
+# User must enter a new account or select an existing one
 draw_header("Welcome Screen")
 
-first_choices = {
-  "1. Select Existing Account" => :select_account,
-  "2. Create New Account"     => :create_account
-}
-
-action = prompt.select("ACCOUNT:", first_choices)
-
-
-#Here, the user will type in the new account name or and existing name
-draw_header("Account Setup")
+# prompt to ask user to selct account or create new account
+action = prompt.select("ACCOUNT:", {
+  "Select existing account" => :select_account,
+  "Create new account" => :create_account
+})
 
 if action == :select_account
-  # Ask them to type their existing name
-  username = prompt.ask("Enter your existing Account Name:")
+  account = select_account
 else
   # Ask them to type a brand new name
-  username = prompt.ask("Type a name for your new account:")
-  puts "\nAccount '#{username}' created successfully!"
+  account = create_account
   sleep 1 # Quick pause so they see the success message
 end
+
+puts "Account ID: #{account["account_id"]}"
 
 
 # ==================================================
 # STEP 3: THE FINAL SELECTION MENU
 # ==================================================
-draw_header("Dashboard for #{username}")
+draw_header("Dashboard for #{account["name"]}")
 
 final_choices = {
   "Create Expense"     => :create_exp,
@@ -59,20 +56,20 @@ final_choices = {
 
 # The user is now locked in this final menu loop
 loop do
-  draw_header("Dashboard for #{username}")
-  
-  selection = prompt.select("Welcome back, #{username}! Choose an option:", final_choices)
-  
+  draw_header("Dashboard for #{account["account_name"]}")
+
+  selection = prompt.select(" Choose an option:", final_choices)
+
   case selection
   when :create_exp
-    #create an expense for an account
+    # create an expense for an account
   when :view_all
-    #view all of the expenses
+    # view all of the expenses
   when :create_budget
-    #use create_budget route
+    # use create_budget route
   when :date_filter
-    #show the expenses within a given month
+    # show the expenses within a given month
   when :category_filter
-    #show the expenses within a given category
+    # show the expenses within a given category
   end
 end
