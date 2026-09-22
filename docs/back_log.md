@@ -1,8 +1,13 @@
-create models - done
-test crud routes - done
-implement route for listing expenses bya specific account - done, needs testing
-implement route for listing expenses by category - implemented needs testing
-implement route for listing expenses by month - needs testing
-implement "budget reached" message - to do
-start front end
-fix expense category creation-done
+## Project 1 Task List
+
+- [x] Create models
+- [x] Test CRUD routes
+- [x] Implement route for listing expenses by a specific account
+  - [ ] Add tests
+- [x] Implement route for listing expenses by category
+  - [ ] Add tests
+- [x] Implement route for listing expenses by month
+  - [ ] Add tests
+- [ ] Implement **"Budget reached"** message
+- [ ] Start front end
+- [x] Fix expense category creation
