@@ -15,9 +15,15 @@ bin/rails server -d
 sleep 3
 
 echo "Running Cucumber tests..."
+
 bundle exec cucumber
 
-# Stop the Rails server after the tests finish
+# Stop the Rails server that this script started
 echo "Stopping Rails server..."
-bin/rails server -d 2>/dev/null
-bin/rails runner 'puts "cli test complete"' 2>/dev/null
+
+if [ -f tmp/pids/server.pid ]; then
+  kill "$(cat tmp/pids/server.pid)" 2>/dev/null
+  rm -f tmp/pids/server.pid
+fi
+
+echo "CLI test complete"

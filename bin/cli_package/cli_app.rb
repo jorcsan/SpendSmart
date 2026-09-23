@@ -43,7 +43,7 @@ class SpendSmartCLI
 
       case selection
       when :create_exp
-        create_expense
+        expense = create_expense(@account["id"])
       when :view_all
         view_all_expenses
       when :create_budget
