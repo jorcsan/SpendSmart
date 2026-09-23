@@ -3,11 +3,18 @@
 - [x] Create models
 - [x] Test CRUD routes
 - [x] Implement route for listing expenses by a specific account
-  - [ ] Add tests
+  - [x] Add tests
 - [x] Implement route for listing expenses by category
-  - [ ] Add tests
+  - [x] Add tests
 - [x] Implement route for listing expenses by month
-  - [ ] Add tests
+  - [x] Add tests
 - [ ] Implement **"Budget reached"** message
-- [ ] Start front end
 - [x] Fix expense category creation
+- [x] Start front end
+- [x] implement account definitions for cli_package
+- [x] implement expense definitions for cli_package
+- [ ] implement filter by category definitions for cli_package
+- [ ] implement filter by month definitions for cli_package
+- [ ] implement delete expense definitions for cli_package
+- [ ] implement edit expense definitions for cli_package
+- [ ] implement delete account definitions for cli_package
