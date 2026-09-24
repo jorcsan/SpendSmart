@@ -48,6 +48,9 @@ class SpendSmartCLI
       when :create_exp
         create_expense(@account["id"], @prompt)
         pause
+      when :view_all
+        view_all_expenses(@account["id"])
+        pause
       when :edit_exp
         edit_expense(@account["id"], @prompt)
         pause
@@ -58,9 +61,9 @@ class SpendSmartCLI
         puts "\nGoodbye."
         break
       else
-        # These four have no definition in definitions.rb yet, and calling a
-        # missing method raised NameError and killed the whole program. Say so
-        # and return to the menu until they are implemented.
+        # Create a Budget, View by Month and View by Category have no
+        # definition yet, and calling a missing method raised NameError and
+        # killed the whole program. Say so and return to the menu.
         not_implemented(selection)
       end
     end

@@ -2,6 +2,7 @@ require "net/http"
 require "json"
 require "uri"
 require "date"
+require "bigdecimal"
 require "tty-prompt"
 API_TOKEN = ENV["SPENDSMART_API_TOKEN"]
 # definition for selecting an already existing account
@@ -182,8 +183,12 @@ def create_expense(account_id, prompt = TTY::Prompt.new)
     puts "\nExpense created successfully!"
     puts "Description: #{expense["description"]}"
     puts "Price: #{expense["price"]}"
-    puts "Category: #{category["name"]}"
+    # From the response, not the local hash: find_or_create_category_id returns
+    # only an id, so reading a name off it printed a blank line.
+    puts "Category: #{expense["category_name"]}"
     puts "Date: #{expense["date"]}"
+
+    show_budget_warnings(account_id)
 
     expense
   else
@@ -278,6 +283,11 @@ def edit_expense(account_id, prompt = TTY::Prompt.new)
   if response.is_a?(Net::HTTPSuccess)
     updated = JSON.parse(response.body)
     puts "\nUpdated: #{updated["description"]} - $#{updated["price"]} (#{updated["category_name"]})"
+
+    # Raising a price, or moving an expense into another category, can put a
+    # budget over just as creating one can.
+    show_budget_warnings(account_id)
+
     updated
   else
     puts "\nCould not update the expense."
@@ -350,4 +360,92 @@ def find_or_create_category_id(name)
   end
 
   JSON.parse(create_response.body)["id"]
+end
+
+# Budget warnings
+# ---------------
+# The over-budget rule lives on the Budget model, so the CLI only has to ask
+# the server and print what comes back. That keeps one definition of "over
+# budget" for the CLI and the web UI, and it is unit-testable in RSpec.
+
+def fetch_budgets(account_id)
+  uri = URI("http://localhost:3000/budgets?account_id=#{account_id}")
+  response = api_request(Net::HTTP::Get.new(uri))
+
+  return [] unless response.is_a?(Net::HTTPSuccess)
+
+  JSON.parse(response.body)
+end
+
+# Prints a warning for each of the account's budgets that is now over its
+# limit. Deliberately a warning and nothing more: the expense is already saved,
+# because a spending tracker that refuses to record real spending is wrong.
+def show_budget_warnings(account_id)
+  budgets = fetch_budgets(account_id)
+  exceeded = budgets.select { |budget| budget["exceeded"] }
+
+  return if exceeded.empty?
+
+  puts ""
+  puts "  ****************************************************"
+  exceeded.each do |budget|
+    over = (budget["spent"].to_f - budget["max_amount"].to_f).abs
+    puts format("  *  OVER BUDGET: %-14s $%.2f of $%.2f",
+                budget["label"], budget["spent"].to_f, budget["max_amount"].to_f)
+    puts format("  *  %s is $%.2f over the limit.", budget["label"], over)
+  end
+  puts "  ****************************************************"
+end
+
+# View all expenses
+# -----------------
+
+ROW_FORMAT = "  %-12s %-26s %12s  %s".freeze
+TABLE_WIDTH = 72
+
+# Every expense on the account as a table, with an exact total underneath.
+def view_all_expenses(account_id)
+  expenses = fetch_expenses(account_id)
+
+  if expenses.empty?
+    puts "\nNo expenses recorded for this account yet."
+    return []
+  end
+
+  puts ""
+  puts format(ROW_FORMAT, "DATE", "DESCRIPTION", "PRICE", "CATEGORY")
+  puts "  #{"-" * TABLE_WIDTH}"
+
+  expenses.each do |expense|
+    puts format(ROW_FORMAT,
+                expense["date"],
+                truncate(expense["description"], 26),
+                format_money(expense["price"]),
+                expense["category_name"])
+  end
+
+  puts "  #{"-" * TABLE_WIDTH}"
+  puts format(ROW_FORMAT,
+              "",
+              "TOTAL (#{expenses.length} #{expenses.length == 1 ? "expense" : "expenses"})",
+              format_money(total_of(expenses)),
+              "")
+
+  expenses
+end
+
+# Summed as BigDecimal rather than Float: prices are decimal in the database
+# for a reason, and adding them as floats would reintroduce the rounding the
+# column type exists to avoid.
+def total_of(expenses)
+  expenses.sum(BigDecimal("0")) { |expense| BigDecimal(expense["price"].to_s) }
+end
+
+def format_money(amount)
+  format("$%.2f", BigDecimal(amount.to_s))
+end
+
+def truncate(text, width)
+  text = text.to_s
+  text.length > width ? "#{text[0, width - 1]}…" : text
 end
