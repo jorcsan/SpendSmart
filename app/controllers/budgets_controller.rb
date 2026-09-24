@@ -3,7 +3,9 @@ class BudgetsController < ApplicationController
 
   # GET /budgets or /budgets.json
   def index
-    @budgets = Budget.all
+    # Scoped by account so the CLI can ask "which of this account's budgets are
+    # blown?" after recording an expense. A blank account_id returns them all.
+    @budgets = Budget.for_account(params[:account_id])
   end
 
   # GET /budgets/1 or /budgets/1.json
