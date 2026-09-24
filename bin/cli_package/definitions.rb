@@ -1,6 +1,7 @@
 require "net/http"
 require "json"
 require "uri"
+require "date"
 require "tty-prompt"
 API_TOKEN = ENV["SPENDSMART_API_TOKEN"]
 # definition for selecting an already existing account
@@ -142,61 +143,18 @@ def create_expense(account_id, prompt = TTY::Prompt.new)
     return nil
   end
 
-  # check that the category does exist
-  uri = URI("http://localhost:3000/categories")
-  http = Net::HTTP.new(uri.host, uri.port)
+  # Look the category up, creating it when it is new, so the user never has to
+  # set one up before recording an expense. Shared with edit_expense.
+  category_id = find_or_create_category_id(category_name)
+  return nil if category_id.nil?
 
-  request = Net::HTTP::Get.new(uri.request_uri)
-  request["Accept"] = "application/json"
-  request["Authorization"] = "Bearer #{API_TOKEN}"
+  category = { "id" => category_id }
 
-  response = http.request(request)
-
-  unless response.is_a?(Net::HTTPSuccess)
-    puts "\nCould not retrieve categories."
-    puts response.body
-    return nil
-  end
-
-  categories = JSON.parse(response.body)
-
-category = categories.find do |cat|
-  cat["name"]&.casecmp(category_name) == 0
-end
-
-  # Create category if it doesn't exist
-  # this is the way categories will be created so user does
-  # not have to create one before entering an expense
-  unless category
-    puts "\nCategory '#{category_name}' does not exist."
-
-    create_request = Net::HTTP::Post.new(uri.request_uri)
-    create_request["Content-Type"] = "application/json"
-    create_request["Accept"] = "application/json"
-    create_request["Authorization"] = "Bearer #{API_TOKEN}"
-
-    create_request.body = {
-      category: {
-        name: category_name
-      }
-    }.to_json
-
-    create_response = http.request(create_request)
-
-    unless create_response.is_a?(Net::HTTPSuccess) ||
-           create_response.is_a?(Net::HTTPCreated)
-      puts "\nCould not create category."
-      puts create_response.body
-      return nil
-    end
-
-    category = JSON.parse(create_response.body)
-
-    puts "Category '#{category["name"]}' created successfully!"
-  end
-
-  # Automatically use today's date
-  date = Date.current
+  # Automatically use today's date. Date.today, not Date.current: the latter is
+  # ActiveSupport, and this CLI runs as plain Ruby outside the Rails process.
+  # It only appeared to work under Cucumber because features/support/env.rb
+  # loads config/environment first.
+  date = Date.today
 
   uri = URI("http://localhost:3000/expenses")
   http = Net::HTTP.new(uri.host, uri.port)
@@ -233,4 +191,163 @@ end
     puts response.body
     nil
   end
+end
+
+# Expense edit / delete definitions
+# ---------------------------------
+# Both need the user to pick an existing expense first, so the listing and the
+# picker live here rather than being duplicated in each one.
+
+def api_request(request)
+  request["Content-Type"] = "application/json"
+  request["Accept"] = "application/json"
+  request["Authorization"] = "Bearer #{API_TOKEN}"
+
+  uri = request.uri
+  Net::HTTP.new(uri.host, uri.port).request(request)
+end
+
+# Every expense belonging to one account, newest first (the server orders it).
+def fetch_expenses(account_id)
+  uri = URI("http://localhost:3000/expenses?account_id=#{account_id}")
+  response = api_request(Net::HTTP::Get.new(uri))
+
+  unless response.is_a?(Net::HTTPSuccess)
+    puts "\nCould not load expenses."
+    return []
+  end
+
+  JSON.parse(response.body)
+end
+
+# Returns the chosen expense, or nil when there is nothing to choose from.
+def choose_expense(account_id, prompt, action)
+  expenses = fetch_expenses(account_id)
+
+  if expenses.empty?
+    puts "\nThere are no expenses to #{action} for this account."
+    return nil
+  end
+
+  choices = {}
+  expenses.each do |expense|
+    label = format("%s  %-24s $%-9s %s",
+                   expense["date"],
+                   expense["description"].to_s[0, 24],
+                   expense["price"],
+                   expense["category_name"])
+    choices[label] = expense
+  end
+
+  choices[prompt.select("Choose an expense to #{action}:", choices.keys)]
+end
+
+def edit_expense(account_id, prompt = TTY::Prompt.new)
+  expense = choose_expense(account_id, prompt, "edit")
+  return nil if expense.nil?
+
+  puts "\nPress ENTER without typing anything to keep the current value."
+
+  # Single-argument ask, so the FakePrompt used by the Cucumber steps keeps
+  # working. Blank means "unchanged" rather than "clear it".
+  description = prompt.ask("Description [#{expense["description"]}]:")
+  price       = prompt.ask("Price [#{expense["price"]}]:")
+  category    = prompt.ask("Category [#{expense["category_name"]}]:")
+
+  changes = {}
+  changes[:description] = description.strip unless description.to_s.strip.empty?
+  changes[:price] = price.strip unless price.to_s.strip.empty?
+
+  unless category.to_s.strip.empty?
+    category_id = find_or_create_category_id(category.strip)
+    return nil if category_id.nil?
+
+    changes[:category_id] = category_id
+  end
+
+  if changes.empty?
+    puts "\nNothing changed."
+    return expense
+  end
+
+  uri = URI("http://localhost:3000/expenses/#{expense["id"]}")
+  request = Net::HTTP::Patch.new(uri)
+  request.body = { expense: changes }.to_json
+  response = api_request(request)
+
+  if response.is_a?(Net::HTTPSuccess)
+    updated = JSON.parse(response.body)
+    puts "\nUpdated: #{updated["description"]} - $#{updated["price"]} (#{updated["category_name"]})"
+    updated
+  else
+    puts "\nCould not update the expense."
+    report_errors(response)
+    nil
+  end
+end
+
+def delete_expense(account_id, prompt = TTY::Prompt.new)
+  expense = choose_expense(account_id, prompt, "delete")
+  return nil if expense.nil?
+
+  # select rather than yes?, so the Cucumber FakePrompt can drive it too.
+  answer = prompt.select(
+    "Delete '#{expense["description"]}' ($#{expense["price"]})? This cannot be undone.",
+    [ "No, keep it", "Yes, delete it" ]
+  )
+
+  if answer != "Yes, delete it"
+    puts "\nNothing was deleted."
+    return nil
+  end
+
+  uri = URI("http://localhost:3000/expenses/#{expense["id"]}")
+  response = api_request(Net::HTTP::Delete.new(uri))
+
+  if response.is_a?(Net::HTTPSuccess)
+    puts "\nDeleted '#{expense["description"]}'."
+    expense
+  else
+    puts "\nCould not delete the expense."
+    report_errors(response)
+    nil
+  end
+end
+
+# Rails answers a failed save with a JSON hash of field => [messages].
+def report_errors(response)
+  errors = JSON.parse(response.body)
+  errors.each { |field, messages| puts "  #{field}: #{Array(messages).join(", ")}" }
+rescue JSON::ParserError
+  puts "  #{response.code} #{response.message}"
+end
+
+# Returns the id of the category with this name, creating it when it does not
+# exist yet. Matching is case-insensitive to line up with the uniqueness rule
+# on the model, so "grocery" will not create a second "Grocery".
+def find_or_create_category_id(name)
+  uri = URI("http://localhost:3000/categories")
+  response = api_request(Net::HTTP::Get.new(uri))
+
+  unless response.is_a?(Net::HTTPSuccess)
+    puts "\nCould not retrieve categories."
+    return nil
+  end
+
+  existing = JSON.parse(response.body).find { |cat| cat["name"]&.casecmp(name)&.zero? }
+  return existing["id"] if existing
+
+  puts "\nCategory '#{name}' does not exist - creating it."
+
+  request = Net::HTTP::Post.new(uri)
+  request.body = { category: { name: name } }.to_json
+  create_response = api_request(request)
+
+  unless create_response.is_a?(Net::HTTPSuccess)
+    puts "\nCould not create category."
+    report_errors(create_response)
+    return nil
+  end
+
+  JSON.parse(create_response.body)["id"]
 end
