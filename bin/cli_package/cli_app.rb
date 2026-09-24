@@ -38,22 +38,42 @@ class SpendSmartCLI
         "View All Expenses" => :view_all,
         "Create a Budget" => :create_budget,
         "View Expenses by Month" => :date_filter,
-        "View Expenses by Category" => :category_filter
+        "View Expenses by Category" => :category_filter,
+        "Edit Expense" => :edit_exp,
+        "Delete Expense" => :delete_exp,
+        "Exit" => :exit
       })
 
       case selection
       when :create_exp
-        expense = create_expense(@account["id"])
-      when :view_all
-        view_all_expenses
-      when :create_budget
-        create_budget
-      when :date_filter
-        filter_by_month
-      when :category_filter
-        filter_by_category
+        create_expense(@account["id"], @prompt)
+        pause
+      when :edit_exp
+        edit_expense(@account["id"], @prompt)
+        pause
+      when :delete_exp
+        delete_expense(@account["id"], @prompt)
+        pause
+      when :exit
+        puts "\nGoodbye."
+        break
+      else
+        # These four have no definition in definitions.rb yet, and calling a
+        # missing method raised NameError and killed the whole program. Say so
+        # and return to the menu until they are implemented.
+        not_implemented(selection)
       end
     end
+  end
+
+  def not_implemented(selection)
+    puts "\n  '#{selection}' is not implemented yet."
+    pause
+  end
+
+  # Hold the result on screen until the user is ready; draw_header clears it.
+  def pause
+    @prompt.keypress("\n  Press any key to return to the menu...")
   end
 
   def draw_header(screen_title)
