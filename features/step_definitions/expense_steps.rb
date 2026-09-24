@@ -2,7 +2,7 @@ require_relative "../../bin/cli_package/definitions"
 
 class ExpenseFakePrompt
   def initialize(description, price, category)
-    @answers = [description, price, category]
+    @answers = [ description, price, category ]
   end
 
   def ask(_message)
@@ -10,6 +10,7 @@ class ExpenseFakePrompt
   end
 end
 
+# happy path test
 Given('a category named {string} exists') do |category_name|
   @category = Category.where("LOWER(name) = ?", category_name.downcase).first
 
@@ -38,4 +39,23 @@ end
 
 Then('the expense should belong to the {string} category') do |category_name|
   expect(@expense["category_id"]).to eq(@category.id)
+end
+
+# sad path test
+Given('I enter the expense details:') do |table|
+  details = table.rows_hash
+
+  @expense_prompt = ExpenseFakePrompt.new(
+    details["Description"],
+    details["Price"],
+    details["Category"]
+  )
+end
+
+When('I try to create the expense with empty category') do
+  @expense = create_expense(@account.id, @expense_prompt)
+end
+
+Then('the expense should not be created') do
+  expect(@expense).to be_nil
 end

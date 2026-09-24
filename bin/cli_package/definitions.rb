@@ -3,21 +3,21 @@ require "json"
 require "uri"
 require "tty-prompt"
 API_TOKEN = ENV["SPENDSMART_API_TOKEN"]
-#definition for selecting an already existing account
-#and returning its id
+# definition for selecting an already existing account
+# and returning its id
 def select_account(prompt = TTY::Prompt.new)
   uri = URI("http://localhost:3000/accounts")
 
-  
+
   http = Net::HTTP.new(uri.host, uri.port)
   request = Net::HTTP::Get.new(uri.request_uri)
 
-  #here we state that we wish to recieve the data in java form
-  #we use the API_Token to be able to access data and make request
+  # here we state that we wish to recieve the data in java form
+  # we use the API_Token to be able to access data and make request
   request["Accept"] = "application/json"
   request["Authorization"] = "Bearer #{API_TOKEN}"
 
-  
+
   response = http.request(request)
 
   account_choices = {}
@@ -44,7 +44,6 @@ end
 
 # Definition to create a new account and return its ID
 def create_account(prompt = TTY::Prompt.new)
-
   # Ask the user for the account name first
   account_name = prompt.ask("Type a name for your new account:")
 
@@ -82,17 +81,16 @@ def create_account(prompt = TTY::Prompt.new)
   end
 end
 
-#Expense Definitions
+# Expense Definitions
 # Definition to create a new account and return its ID
 def create_account(prompt = TTY::Prompt.new)
-3
   account_name = prompt.ask("Type a name for your new account:")
 
   uri = URI("http://localhost:3000/accounts")
   http = Net::HTTP.new(uri.host, uri.port)
   request = Net::HTTP::Post.new(uri.path)
 
-  #Tell Rails we are sending JSON
+  # Tell Rails we are sending JSON
   request["Content-Type"] = "application/json"
   request["Accept"] = "application/json"
   request["Authorization"] = "Bearer #{API_TOKEN}"
@@ -103,10 +101,10 @@ def create_account(prompt = TTY::Prompt.new)
     }
   }.to_json
 
-  
+
   response = http.request(request)
 
-  
+
   if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPCreated)
     account = JSON.parse(response.body)
 
@@ -129,7 +127,22 @@ def create_expense(account_id, prompt = TTY::Prompt.new)
   price = prompt.ask("Price:")
   category_name = prompt.ask("Category:")
 
-  #check that the category does exist
+  if description.nil? || description.strip.empty?
+    puts "Description cannot be empty."
+    return nil
+  end
+
+  if price.nil? || price.strip.empty?
+    puts "Price cannot be empty."
+    return nil
+  end
+
+  if category_name.nil? || category_name.strip.empty?
+    puts "Category cannot be empty."
+    return nil
+  end
+
+  # check that the category does exist
   uri = URI("http://localhost:3000/categories")
   http = Net::HTTP.new(uri.host, uri.port)
 
@@ -151,12 +164,12 @@ category = categories.find do |cat|
   cat["name"]&.casecmp(category_name) == 0
 end
 
-  #Create category if it doesn't exist
-  #this is the way categories will be created so user does 
-  #not have to create one before entering an expense
+  # Create category if it doesn't exist
+  # this is the way categories will be created so user does
+  # not have to create one before entering an expense
   unless category
     puts "\nCategory '#{category_name}' does not exist."
-    
+
     create_request = Net::HTTP::Post.new(uri.request_uri)
     create_request["Content-Type"] = "application/json"
     create_request["Accept"] = "application/json"

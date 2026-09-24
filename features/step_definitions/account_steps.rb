@@ -5,7 +5,7 @@ Given("an account named {string} exists") do |name|
 end
 
 When("I select the {string} account") do |account_name|
-  @prompt = FakePrompt.new([account_name])
+  @prompt = FakePrompt.new([ account_name ])
 
   @selected_account = select_account(@prompt)
 end
@@ -15,7 +15,7 @@ Then("the selected account should be {string}") do |expected_name|
 end
 
 When("I create an account named {string}") do |account_name|
-    @prompt = FakePrompt.new([account_name])
+    @prompt = FakePrompt.new([ account_name ])
 
     @created_account = create_account(@prompt)
 end
