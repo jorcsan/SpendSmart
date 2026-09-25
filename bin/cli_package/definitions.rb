@@ -234,3 +234,44 @@ end
     nil
   end
 end
+
+
+#view all expenes
+def view_expenses(account_id)
+  uri = URI("http://localhost:3000/expenses?account_id=#{account_id}")
+
+  request = Net::HTTP::Get.new(uri.request_uri)
+  request["Content-Type"] = "application/json"
+  request["Accept"] = "application/json"
+  request["Authorization"] = "Bearer #{API_TOKEN}"
+
+  response = Net::HTTP.start(uri.hostname, uri.port) do |http|
+    http.request(request)
+  end
+
+  unless response.is_a?(Net::HTTPSuccess)
+    puts "Failed to get expenses."
+    puts "Status: #{response.code}"
+    puts response.body
+    return
+  end
+
+  expenses = JSON.parse(response.body)
+
+  if expenses.empty?
+    puts "\nNo expenses found."
+    return
+  end
+
+  puts "\nAll Expenses in your Account"
+
+  expenses.each do |expense|
+    puts "Description: #{expense["description"]}"
+    puts "Price: $#{expense["price"]}"
+    puts "Category: #{expense["category"]}"
+    puts "Date: #{expense["date"]}"
+    puts "------------------------------"
+  end
+end
+
+

@@ -21,6 +21,15 @@ Feature: Expense management
     Then the expense should not be created
     And I should see "Category cannot be empty."
 
+  Scenario: View all expenses in the Account
+    Given an account named "Checking" exists
+    And the account has an expense "Old Purchase" dated "2026-09-20"
+    And the account has an expense "New Purchase" dated "2026-09-24"
+    When I select the account "Checking"
+    And I choose "View All Expenses"
+    Then I should see all expenses, and the most recent should be first
+
+
   Scenario: View expenses by category
     Given the "Checking" account has an expense in category "Food"
     When I view expenses by category "Food"

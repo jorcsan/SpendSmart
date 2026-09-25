@@ -45,7 +45,7 @@ class SpendSmartCLI
       when :create_exp
         expense = create_expense(@account["id"])
       when :view_all
-        view_all_expenses
+        view_expenses(@account["id"])
       when :create_budget
         create_budget
       when :date_filter
