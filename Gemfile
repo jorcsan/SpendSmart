@@ -58,6 +58,10 @@ group :development, :test do
   # RSpec is the project's test framework, replacing the default Minitest setup.
   # It lives in development too so that `rails generate` produces specs, not tests.
   gem "rspec-rails"
+
+  # Realistic names, merchants and amounts for db/seeds.rb. Development and test
+  # only - nothing in app/ depends on it, so it never ships to production.
+  gem "faker"
 end
 
 group :development do
