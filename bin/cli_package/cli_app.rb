@@ -50,6 +50,13 @@ class SpendSmartCLI
         pause
       when :view_all
         view_all_expenses(@account["id"])
+      when :create_budget
+        create_budget
+      when :date_filter
+        filter_by_month
+      when :category_filter
+        filter_by_category
+        view_all_expenses(@account["id"])
         pause
       when :edit_exp
         edit_expense(@account["id"], @prompt)

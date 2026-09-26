@@ -46,46 +46,6 @@ end
 
 # Definition to create a new account and return its ID
 def create_account(prompt = TTY::Prompt.new)
-  # Ask the user for the account name first
-  account_name = prompt.ask("Type a name for your new account:")
-
-  uri = URI("http://localhost:3000/accounts")
-  http = Net::HTTP.new(uri.host, uri.port)
-  request = Net::HTTP::Post.new(uri.path)
-
-  # Tell Rails we are sending JSON
-  request["Content-Type"] = "application/json"
-  request["Accept"] = "application/json"
-  request["Authorization"] = "Bearer #{API_TOKEN}"
-  # Put the account name into the request
-  request.body = {
-    account: {
-      name: account_name
-    }
-  }.to_json
-
-  # Send the request
-  response = http.request(request)
-
-  if response.is_a?(Net::HTTPSuccess) || response.is_a?(Net::HTTPCreated)
-    account = JSON.parse(response.body)
-
-    puts "\nAccount '#{account["name"]}' created successfully!"
-    puts "Account ID: #{account["id"]}"
-
-    sleep 1
-
-    account
-  else
-    puts "\nCould not create account."
-    puts response.body
-    exit
-  end
-end
-
-# Expense Definitions
-# Definition to create a new account and return its ID
-def create_account(prompt = TTY::Prompt.new)
   account_name = prompt.ask("Type a name for your new account:")
 
   uri = URI("http://localhost:3000/accounts")
@@ -202,7 +162,6 @@ end
 # ---------------------------------
 # Both need the user to pick an existing expense first, so the listing and the
 # picker live here rather than being duplicated in each one.
-
 def api_request(request)
   request["Content-Type"] = "application/json"
   request["Accept"] = "application/json"
