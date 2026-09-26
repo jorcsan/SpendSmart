@@ -3,7 +3,7 @@ require_relative "../../bin/cli_package/definitions"
 
 class ExpenseFakePrompt
   def initialize(description, price, category)
-    @answers = [description, price, category]
+    @answers = [ description, price, category ]
   end
 
   def ask(_message)
