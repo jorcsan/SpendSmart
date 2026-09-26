@@ -294,7 +294,7 @@ end
 # Returns the id of the category with this name, creating it when it does not
 # exist yet. Matching is case-insensitive to line up with the uniqueness rule
 # on the model, so "grocery" will not create a second "Grocery".
-def find_or_create_category_id(name)
+def fetch_categories
   uri = URI("http://localhost:3000/categories")
   response = api_request(Net::HTTP::Get.new(uri))
 
@@ -303,12 +303,19 @@ def find_or_create_category_id(name)
     return nil
   end
 
-  existing = JSON.parse(response.body).find { |cat| cat["name"]&.casecmp(name)&.zero? }
+  JSON.parse(response.body)
+end
+
+def find_or_create_category_id(name)
+  categories = fetch_categories
+  return nil if categories.nil?
+
+  existing = categories.find { |cat| cat["name"]&.casecmp(name)&.zero? }
   return existing["id"] if existing
 
   puts "\nCategory '#{name}' does not exist - creating it."
 
-  request = Net::HTTP::Post.new(uri)
+  request = Net::HTTP::Post.new(URI("http://localhost:3000/categories"))
   request.body = { category: { name: name } }.to_json
   create_response = api_request(request)
 
@@ -362,15 +369,10 @@ end
 ROW_FORMAT = "  %-12s %-26s %12s  %s".freeze
 TABLE_WIDTH = 72
 
-# Every expense on the account as a table, with an exact total underneath.
-def view_all_expenses(account_id)
-  expenses = fetch_expenses(account_id)
-
-  if expenses.empty?
-    puts "\nNo expenses recorded for this account yet."
-    return []
-  end
-
+# Renders a list of expenses with an exact total underneath. Shared by every
+# view that shows expenses - all of them, one month, one category - so the
+# columns and the total line stay identical wherever they appear.
+def print_expense_table(expenses)
   puts ""
   puts format(ROW_FORMAT, "DATE", "DESCRIPTION", "PRICE", "CATEGORY")
   puts "  #{"-" * TABLE_WIDTH}"
@@ -391,6 +393,18 @@ def view_all_expenses(account_id)
               "")
 
   expenses
+end
+
+# Every expense on the account as a table, with an exact total underneath.
+def view_all_expenses(account_id)
+  expenses = fetch_expenses(account_id)
+
+  if expenses.empty?
+    puts "\nNo expenses recorded for this account yet."
+    return []
+  end
+
+  print_expense_table(expenses)
 end
 
 # Summed as BigDecimal rather than Float: prices are decimal in the database
@@ -444,24 +458,38 @@ def filter_date(account_id, prompt = TTY::Prompt.new)
     return []
   end
 
-  puts ""
-  puts format(ROW_FORMAT, "DATE", "DESCRIPTION", "PRICE", "CATEGORY")
-  puts "  #{"-" * TABLE_WIDTH}"
-
-  expenses.each do |expense|
-    puts format(ROW_FORMAT,
-                expense["date"],
-                truncate(expense["description"], 26),
-                format_money(expense["price"]),
-                expense["category_name"])
-  end
-
-  puts "  #{"-" * TABLE_WIDTH}"
-  puts format(ROW_FORMAT,
-              "",
-              "TOTAL (#{expenses.length} #{expenses.length == 1 ? "expense" : "expenses"})",
-              format_money(total_of(expenses)),
-              "")
+  print_expense_table(expenses)
 
   expenses
+end
+
+# Filter by category
+# ------------------
+
+# Lists one category's expenses for this account, with its total. The picker
+# only offers categories the account has actually spent in - choosing a
+# category and being told "nothing here" is a dead end, not an answer.
+def filter_by_category(account_id, prompt = TTY::Prompt.new)
+  expenses = fetch_expenses(account_id)
+
+  if expenses.empty?
+    puts "\nNo expenses recorded for this account yet."
+    return []
+  end
+
+  names = expenses.map { |expense| expense["category_name"] }.compact.uniq.sort
+
+  if names.empty?
+    puts "\nNone of this account's expenses have a category."
+    return []
+  end
+
+  chosen = prompt.select("Choose a category:", names)
+
+  # Filtered from the list already fetched rather than with a second request:
+  # the server would return the same rows, and category_name is already on them.
+  matching = expenses.select { |expense| expense["category_name"] == chosen }
+
+  puts "\n  #{chosen}"
+  print_expense_table(matching)
 end
