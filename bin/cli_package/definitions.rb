@@ -408,3 +408,60 @@ def truncate(text, width)
   text = text.to_s
   text.length > width ? "#{text[0, width - 1]}…" : text
 end
+
+# Every expense within the month as a table, with an exact total underneath.
+def filter_date(account_id, prompt = TTY::Prompt.new)
+  month = prompt.ask("Enter the month you would like to view
+  , use format mm-yyyy")
+
+  begin
+    month = Date.strptime(month, "%m-%Y")
+  rescue ArgumentError
+    puts "\nInvalid month. Please use MM-YYYY."
+    return []
+  end
+
+  if month.year > Date.today.year ||
+    (month.year == Date.today.year && month.month > Date.today.month)
+    puts "\nYou cannot view expenses for a future month."
+    return []
+  end
+
+  # Convert to the format expected by the Rails API
+  month = month.strftime("%Y-%m")
+
+  uri = URI("http://localhost:3000/expenses?account_id=#{account_id}&month=#{month}")
+  response = api_request(Net::HTTP::Get.new(uri))
+
+  unless response.is_a?(Net::HTTPSuccess)
+    puts "\nCould not load expenses."
+    return []
+  end
+
+  expenses = JSON.parse(response.body)
+  if expenses.empty?
+    puts "\nNo expenses recorded for this month yet."
+    return []
+  end
+
+  puts ""
+  puts format(ROW_FORMAT, "DATE", "DESCRIPTION", "PRICE", "CATEGORY")
+  puts "  #{"-" * TABLE_WIDTH}"
+
+  expenses.each do |expense|
+    puts format(ROW_FORMAT,
+                expense["date"],
+                truncate(expense["description"], 26),
+                format_money(expense["price"]),
+                expense["category_name"])
+  end
+
+  puts "  #{"-" * TABLE_WIDTH}"
+  puts format(ROW_FORMAT,
+              "",
+              "TOTAL (#{expenses.length} #{expenses.length == 1 ? "expense" : "expenses"})",
+              format_money(total_of(expenses)),
+              "")
+
+  expenses
+end

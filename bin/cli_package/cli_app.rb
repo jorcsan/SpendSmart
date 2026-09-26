@@ -53,7 +53,7 @@ class SpendSmartCLI
       when :create_budget
         create_budget
       when :date_filter
-        filter_by_month
+        filter_date(@account["id"])
       when :category_filter
         filter_by_category
         view_all_expenses(@account["id"])

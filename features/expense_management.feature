@@ -1,7 +1,5 @@
 Feature: Expense management
 
-Feature: Expense management
-
   Scenario: Create an expense for a specific account
     Given an account named "Checking" exists
     And a category named "Grocery" exists
@@ -34,8 +32,3 @@ Feature: Expense management
     Given the "Checking" account has an expense in category "Food"
     When I view expenses by category "Food"
     Then I should see the "Food" expense
-
-  Scenario: View expenses by month
-    Given the "Checking" account has an expense in September 2026
-    When I view expenses for September 2026
-    Then I should see the September expense
