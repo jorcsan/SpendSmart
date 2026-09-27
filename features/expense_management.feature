@@ -27,6 +27,22 @@ Feature: Expense management
     And I choose "View All Expenses"
     Then I should see all expenses, and the most recent should be first
 
+  Scenario: Delete an Expense
+    Given an account named "Checking" exists
+    And the account has an expense "Gas" dated "2026-09-25"
+    When I delete the expense "Gas"
+    Then the expense "Gas" should be deleted
+
+  Scenario: Edit an expense
+    Given an account named "Checking" exists
+    And a category named "Grocery" exists
+    And the account has an expense "Walmart" dated "2026-09-25"
+    When I edit the expense "Walmart" with description "Target" price "30" and category "Food"
+    Then the edited expense should have description "Target"
+    And the edited expense should have price "30"
+    And the edited expense should have category "Food"
+
+
 
   Scenario: View expenses by category
     Given the "Checking" account has an expense in category "Food"

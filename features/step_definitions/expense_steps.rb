@@ -101,3 +101,85 @@ Then('I should see all expenses, and the most recent should be first') do
 
   expect(new_position).to be < old_position
 end
+
+# steps for delete expense
+class DeleteExpenseFakePrompt
+  def initialize(description)
+    @description = description
+  end
+
+  def select(message, choices)
+    if message.include?("Choose an expense to delete")
+      choices.find { |choice| choice.include?(@description) }
+    else
+      "Yes, delete it"
+    end
+  end
+end
+
+When('I delete the expense {string}') do |description|
+  prompt = DeleteExpenseFakePrompt.new(description)
+
+  @output = capture_stdout do
+    @deleted_expense = delete_expense(@account.id, prompt)
+  end
+end
+
+Then('the expense {string} should be deleted') do |description|
+  expense = Expense.find_by(
+    account_id: @account.id,
+    description: description
+  )
+
+  expect(expense).to be_nil
+end
+
+class EditExpenseFakePrompt
+  def initialize(description, price, category, expense_description)
+    @description = description
+    @price = price
+    @category = category
+    @expense_description = expense_description
+  end
+
+  def select(message, choices)
+    if message.include?("Choose an expense to edit")
+      choices.find { |choice| choice.include?(@expense_description) }
+    end
+  end
+
+  def ask(message)
+    if message.include?("Description")
+      @description
+    elsif message.include?("Price")
+      @price
+    elsif message.include?("Category")
+      @category
+    end
+  end
+end
+
+When('I edit the expense {string} with description {string} price {string} and category {string}') do |old_description, description, price, category|
+  prompt = EditExpenseFakePrompt.new(
+    description,
+    price,
+    category,
+    old_description
+  )
+
+  @output = capture_stdout do
+    @edited_expense = edit_expense(@account.id, prompt)
+  end
+end
+
+Then('the edited expense should have description {string}') do |description|
+  expect(@edited_expense["description"]).to eq(description)
+end
+
+Then('the edited expense should have price {string}') do |price|
+  expect(@edited_expense["price"].to_f).to eq(price.to_f)
+end
+
+Then('the edited expense should have category {string}') do |category_name|
+  expect(@edited_expense["category_name"]).to eq(category_name)
+end
