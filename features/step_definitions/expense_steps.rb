@@ -102,7 +102,7 @@ Then('I should see all expenses, and the most recent should be first') do
   expect(new_position).to be < old_position
 end
 
-#steps for delete expense
+# steps for delete expense
 class DeleteExpenseFakePrompt
   def initialize(description)
     @description = description
