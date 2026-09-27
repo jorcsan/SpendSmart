@@ -1,12 +1,10 @@
-require_relative "../../config/environment"
-require "rspec/expectations"
-require "stringio"
 require "simplecov"
 
 SimpleCov.start do
   root Dir.pwd
 
-  skip "app/"
+  merge_timeout 3600
+
   skip "config/"
   skip "db/"
   skip "lib/"
@@ -14,10 +12,16 @@ SimpleCov.start do
   skip "spec/"
   skip "features/"
 
-  group "CLI", "bin/cli_package/definitions.rb"
+  group "Models", "app/models"
+  group "Controllers", "app/controllers"
+  group "CLI", "bin/cli_package"
 
   minimum_coverage 80
 end
+
+require_relative "../../config/environment"
+require "rspec/expectations"
+require "stringio"
 
 def capture_stdout
   original_stdout = $stdout
