@@ -12,7 +12,7 @@
 - The application displays an appropriate error message when the category is empty.
 - The invalid expense is not saved to the account.
 - The user can correct the information and try again.
-
+___
 3. As a user, I want to be able to filter my expenses by category.
 
 4. As a user, I want to be able to see the budget in a message across the application.
