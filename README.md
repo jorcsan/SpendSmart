@@ -47,8 +47,8 @@ Open Coverage
 open coverage/index.html
 ```
 
-List of Features
-1, Creates and stores a new expense with a price, description, category, and date.
+## List of Features
+1. Creates and stores a new expense with a price, description, category, and date.
 2. Automatically categorizes expenses based on the category assigned when the expense is created.
 3. View expenses and filter the list by category.
 4. Edit the details of an existing expense.
