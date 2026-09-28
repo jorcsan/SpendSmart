@@ -486,9 +486,9 @@ def filter_by_category(account_id, prompt = TTY::Prompt.new)
 
   chosen = prompt.select("Choose a category:", names)
 
-  # Filtered from the list already fetched rather than with a second request:
-  # the server would return the same rows, and category_name is already on them.
-  matching = expenses.select { |expense| expense["category_name"] == chosen }
+  matching = expenses.select do |expense|
+    expense["category_name"].to_s.casecmp?(chosen)
+  end
 
   puts "\n  #{chosen}"
   print_expense_table(matching)
